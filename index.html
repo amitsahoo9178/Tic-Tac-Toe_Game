@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tic Tac Toe 3D Celebrations</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #548687; font-family: 'Segoe UI', Arial, sans-serif; text-align: center; }
+    h1 {
+      font-size: 3.2rem;
+      font-weight: bold;
+      letter-spacing: 0.08em;
+      color: #fff;
+      margin: 2rem 0 0.5rem 0;
+      text-shadow: 0 4px 8px #54989777;
+    }
+    .mode-selection { margin: 1.3rem 0; }
+    .mode-selection button {
+      padding: 1rem 2rem;
+      margin: 0 1rem;
+      font-size: 1.1rem;
+      background: #191913;
+      color: #fff;
+      border-radius: 0.7rem;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .mode-selection button.active {
+      background: #548687;
+      box-shadow: 0 0 8px #fff, 0 1.5px 8px #54868799;
+    }
+    .container {
+      min-height: 50vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .game {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 1.5vmin;
+      width: 60vmin;
+      height: 60vmin;
+      margin: 0 auto;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.3), 0 1.5px 4px rgba(84,134,135,0.2);
+      border-radius: 2rem;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+    .box {
+      width: 18vmin;
+      height: 18vmin;
+      border-radius: 1rem;
+      border: none;
+      font-size: 8vmin;
+      color: #b0413e;
+      background: linear-gradient(160deg, #fff 70%, #eee 100%);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15), 0 1.5px 3px #54868799;
+      transition: transform 0.2s cubic-bezier(.25,.8,.25,1), box-shadow 0.2s;
+      cursor: pointer;
+      position: relative;
+      will-change: transform;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .box:active {
+      transform: scale(0.97) rotateX(7deg) rotateY(7deg);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.21);
+    }
+    .box.filled {
+      animation: popIn 0.45s cubic-bezier(.5,1.8,.5,1) forwards;
+    }
+    @keyframes popIn {
+      from {
+        transform: scale(0) rotateY(180deg);
+        background: #54868799;
+      }
+      to {
+        transform: scale(1) rotateY(0deg);
+        background: linear-gradient(160deg, #fff 70%, #eee 100%);
+      }
+    }
+    .box.winner {
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      color: #222;
+      box-shadow: 0 0 30px #ff9800b3, 0 1.5px 4px #ff980022;
+      animation: winnerGlow 0.9s alternate infinite;
+    }
+    @keyframes winnerGlow {
+      from { box-shadow: 0 0 30px #ff9800b3; }
+      to { box-shadow: 0 0 70px #ffd600cc; }
+    }
+    #reset-btn {
+      padding: 1rem;
+      font-size: 1.15rem;
+      background: #191913;
+      color: #fff;
+      border-radius: 1rem;
+      border: none;
+      margin: 1rem 0.5rem;
+      cursor: pointer;
+    }
+    #new-btn {
+      position: fixed;
+      left: 50%;
+      bottom: 2.2rem;
+      transform: translateX(-50%);
+      z-index: 200;
+      padding: 1.18rem 2.2rem;
+      font-size: 1.4rem;
+      background-color: #191913;
+      color: #fff;
+      border-radius: 1.2rem;
+      border: none;
+      box-shadow: 0 4px 14px #2223;
+      cursor: pointer;
+      display: none;
+      transition: opacity 0.3s;
+    }
+    #msg {
+      color: #ffffc7;
+      font-size: 5vmin;
+      margin-bottom: 2rem;
+    }
+    .msg-container {
+      min-height: 4vmin;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      justify-content: center;
+    }
+    .hide { display: none; }
+    #confetti-holder {
+      position: fixed;
+      left: 0; top: 0;
+      width: 100vw; height: 100vh;
+      pointer-events: none;
+      z-index: 9999;
+    }
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      50% { transform: translateX(10px); }
+      75% { transform: translateX(-10px); }
+      100% { transform: translateX(0); }
+    }
+    .msg-container.draw #msg {
+      animation: shake 0.7s;
+      color: #ff9800;
+    }
+    @media (max-width: 700px) {
+      .game { width: 96vw; height: 96vw; }
+      .box { width: 30vw; height: 30vw; font-size: 16vw; }
+      h1 { font-size: 9vw; }
+      #new-btn { font-size: 5vw; padding: 1.2rem 4vw; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Tic Tac Toe</h1>
+  <div class="mode-selection">
+    <button id="friend-mode" class="active">Play With Friend</button>
+    <button id="computer-mode">Play With Computer</button>
+  </div>
+  <div class="container">
+    <div class="game" id="game">
+      <button class="box"></button>
+      <button class="box"></button>
+      <button class="box"></button>
+      <button class="box"></button>
+      <button class="box"></button>
+      <button class="box"></button>
+      <button class="box"></button>
+      <button class="box"></button>
+      <button class="box"></button>
+    </div>
+  </div>
+  <div class="msg-container hide">
+    <div id="msg"></div>
+  </div>
+  <button id="reset-btn">Reset Board</button>
+  <button id="new-btn">New Game</button>
+  <div id="confetti-holder" class="hide"></div>
+  <script>
+    let boxes = document.querySelectorAll(".box");
+    let resetBtn = document.querySelector("#reset-btn");
+    let newGameBtn = document.querySelector("#new-btn");
+    let msgContainer = document.querySelector(".msg-container");
+    let msg = document.querySelector("#msg");
+
+    let turnX = true; // true = X turn, false = O turn (or computer)
+    const winPatterns = [
+      [0, 1, 2],
+      [0, 3, 6],
+      [0, 4, 8],
+      [1, 4, 7],
+      [2, 5, 8],
+      [2, 4, 6],
+      [3, 4, 5],
+      [6, 7, 8],
+    ];
+
+    // Mode controls
+    let gameMode = "friend";
+    const friendBtn = document.getElementById("friend-mode");
+    const computerBtn = document.getElementById("computer-mode");
+
+    friendBtn.addEventListener("click", () => {
+      gameMode = "friend";
+      friendBtn.classList.add("active");
+      computerBtn.classList.remove("active");
+      resetGame();
+    });
+    computerBtn.addEventListener("click", () => {
+      gameMode = "computer";
+      computerBtn.classList.add("active");
+      friendBtn.classList.remove("active");
+      resetGame();
+    });
+
+    // Celebration (confetti effect)
+    function showConfetti() {
+      const holder = document.getElementById("confetti-holder");
+      holder.innerHTML = "";
+      holder.classList.remove("hide");
+      for(let i=0; i<80; i++) {
+        const conf = document.createElement("div");
+        conf.className = "confetti";
+        conf.style.position = "absolute";
+        conf.style.left = Math.random()*100 + "vw";
+        conf.style.top = "-10px";
+        conf.style.width = "12px";
+        conf.style.height = "12px";
+        conf.style.borderRadius = "3px";
+        conf.style.background = ["#ff9800","#2196f3","#4caf50","#e91e63","#ffc107","#8bc34a","#f44336"][Math.floor(Math.random()*7)];
+        conf.style.opacity = Math.random()*0.5+0.5;
+        conf.style.transform = `rotate(${Math.random()*360}deg)`;
+        conf.animate([
+          { top: "-10px" },
+          { top: "100vh", transform: `rotate(${Math.random()*720}deg)` }
+        ], {
+          duration: 1200 + Math.random()*1800, easing: "ease-out", fill: "forwards"
+        });
+        holder.appendChild(conf);
+        setTimeout(() => { conf.remove(); }, 3000);
+      }
+      setTimeout(() => { holder.classList.add("hide"); holder.innerHTML=""; }, 3000);
+    }
+
+    // Enhanced message/winner logic
+    function showWinner(winner, pattern = []) {
+      msg.innerText = `🎉 Congratulations, Winner is ${winner}! 🎉`;
+      msgContainer.classList.remove("hide");
+      msgContainer.classList.remove("draw");
+      newGameBtn.style.display = "none";
+      if (pattern.length)
+        pattern.forEach(idx => boxes[idx].classList.add("winner"));
+      showConfetti();
+      disableboxes();
+      setTimeout(() => {
+        newGameBtn.style.display = "inline-block";
+      }, 2000);
+    }
+
+    function showDraw() {
+      msg.innerText = "Oops, Try Again!";
+      msgContainer.classList.remove("hide");
+      msgContainer.classList.add("draw");
+      newGameBtn.style.display = "inline-block";
+    }
+
+    function checkWinner() {
+      for (let pattern of winPatterns) {
+        let pos1val = boxes[pattern[0]].innerText;
+        let pos2val = boxes[pattern[1]].innerText;
+        let pos3val = boxes[pattern[2]].innerText;
+        if (pos1val != "" && pos2val != "" && pos3val != "") {
+          if (pos1val === pos2val && pos2val === pos3val) {
+            showWinner(pos1val, pattern);
+            return true;
+          }
+        }
+      }
+      // Check draw (all filled)
+      if ([...boxes].every(b => b.innerText !== "")) {
+        showDraw();
+        return true;
+      }
+      return false;
+    }
+
+    function resetGame() {
+      turnX = true;
+      enableBoxes();
+      msgContainer.classList.add("hide");
+      msgContainer.classList.remove("draw");
+      newGameBtn.style.display = "none";
+    }
+
+    function disableboxes() {
+      for (let box of boxes) {
+        box.disabled = true;
+      }
+    }
+
+    function enableBoxes() {
+      for (let box of boxes) {
+        box.disabled = false;
+        box.innerText = "";
+        box.classList.remove("filled", "winner");
+      }
+    }
+
+    boxes.forEach((box, idx) => {
+      box.addEventListener("click", () => {
+        if (gameMode === "friend") {
+          markBox(box);
+        } else if (gameMode === "computer") {
+          if (turnX && box.innerText === "") {
+            markBox(box);
+            if (!checkWinner()) {
+              setTimeout(computerMove, 400);
+            }
+          }
+        }
+      });
+    });
+
+    function markBox(box) {
+      if (turnX) {
+        box.innerText = "X";
+        turnX = false;
+      } else {
+        box.innerText = "O";
+        turnX = true;
+      }
+      box.classList.add("filled");
+      box.disabled = true;
+      checkWinner();
+    }
+
+    function computerMove() {
+      let empty = [];
+      boxes.forEach((b, i) => {
+        if (b.innerText === "") empty.push(i);
+      });
+      if (empty.length === 0) return;
+      let moveIdx = empty[Math.floor(Math.random() * empty.length)];
+      boxes[moveIdx].innerText = "O";
+      boxes[moveIdx].classList.add("filled");
+      boxes[moveIdx].disabled = true;
+      turnX = true;
+      checkWinner();
+    }
+
+    newGameBtn.addEventListener("click", resetGame);
+    resetBtn.addEventListener("click", resetGame);
+
+    resetGame();
+  </script>
+</body>
+</html>
